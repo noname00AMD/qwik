@@ -1,0 +1,347 @@
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model options {
+    option_id    Int    @id @default(autoincrement()) @db.UnsignedSmallInt()
+    option_name  String @db.VarChar(200)
+    option_value String @db.TinyText
+
+    @@index([option_name])
+}
+
+model categories {
+    cate_id          Int          @id @default(autoincrement()) @db.UnsignedTinyInt()
+    cate_parent_id   Int?         @db.UnsignedTinyInt()
+    cate_parent      categories?  @relation("parentcate", fields: [cate_parent_id], references: [cate_id])
+    cate_child       categories[] @relation("parentcate")
+    cate_name        String       @db.VarChar(200)
+    cate_order       Int          @default(127) @db.UnsignedTinyInt()
+    cate_slug        String       @unique @db.VarChar(200)
+    is_visible       Boolean      @default(false)
+    cate_size        Int          @default(0) @db.UnsignedInt()
+    // cate_type        CategoryType @default(category) //or subcategory
+    cate_discription String?      @db.VarChar(200)
+    cate_thumb       String?      @db.VarChar(200) // to post -> media
+    created_at       DateTime     @default(now()) @db.DateTime() // to post -> media
+    updated_at       DateTime     @default(now()) @db.DateTime() // to post -> media
+    deleted_at       DateTime?    @db.DateTime() // to post -> media
+
+    @@index([cate_slug, cate_parent_id])
+}
+
+model comments {
+    comment_id            BigInt        @id @default(autoincrement()) @db.UnsignedBigInt()
+    comment_post_id       Int        @default(1) @db.UnsignedInt()
+    comment_user_id       Int?       @db.UnsignedInt()
+    comment_phone_id      Int?       @db.UnsignedInt()
+    comment_user_nicename String?       @db.VarChar(255)
+    comment_display_name  String?       @db.VarChar(255)
+    comment_content       String        @db.Text()
+    comment_type          CommentType   @default(comment) // or reply or review
+    comment_Status        CommentStatus @default(schedule)
+    comment_like          Int           @default(0) @db.Int()
+    comment_user_ip       String?       @db.VarChar(50)
+    comment_parent        BigInt?       @db.UnsignedBigInt()
+    created_at            DateTime      @default(now()) @db.DateTime()
+    deleted_at            DateTime?     @db.DateTime()
+
+    @@index([comment_post_id, comment_user_id])
+}
+
+model posts {
+    post_id             Int            @id @default(autoincrement()) @db.UnsignedInt()
+    post_user_id        Int            @default(0) @db.UnsignedInt()
+    post_user_ip        String?           @db.VarChar(100)
+    post_category_id    Int?              @db.UnsignedTinyInt()
+    post_title          String            @db.VarChar(255)
+    post_slug           String            @unique @db.VarChar(255)
+    post_content        String            @db.LongText
+    post_excerpt        String            @db.Text
+    post_status         PostStatus        @default(hidden)
+    post_comment_status PostCommentStatus @default(enable)
+    post_mime_type      PostMimeType      @default(text)
+    post_type           PostType          @default(article)
+    post_thumb          String?           @db.TinyText
+    post_view           Int               @default(0) @db.UnsignedInt
+    post_like           Int               @default(0) @db.UnsignedInt
+    post_password       String?           @db.VarChar(64)
+    post_comment_count  Int               @default(0) @db.UnsignedInt()
+    created_at          DateTime          @default(now()) @db.DateTime()
+    deleted_at          DateTime?         @db.DateTime()
+    updated_at          DateTime?         @db.DateTime()
+    created_at_gmt      DateTime          @default(now()) @db.DateTime()
+    deleted_at_gmt      DateTime?         @db.DateTime()
+
+    @@index([post_user_id, created_at, post_mime_type])
+}
+
+model users {
+    user_id             Int            @id @default(autoincrement()) @db.UnsignedInt()
+    user_ip             String?           @db.VarChar(100)
+    user_email          String            @unique @db.VarChar(100)
+    display_name        String            @db.Text()
+    user_nicename       String            @unique @db.VarChar(100)
+    user_thumb          String            @db.TinyText
+    user_bio            String            @db.TinyText
+    user_phone          String            @unique @db.VarChar(10)
+    user_password       String            @db.VarChar(255)
+    user_fcm_token      String            @db.VarChar(255)
+    user_status         UserStatus        @default(registration)
+    user_comment_status UserCommentStatus @default(enable)
+    user_role           Role              @default(user)
+    code                String?           @db.VarChar(255)
+    action              Action            @default(signup)
+    created_at          DateTime          @default(now()) @db.DateTime()
+    generated_at        DateTime?         @db.DateTime()
+    delete_at           DateTime?         @db.DateTime()
+
+    @@index([user_email, user_nicename])
+}
+
+model tags {
+    tag_id          Int  @id @default(autoincrement()) @db.UnsignedInt()
+    tag_name        String  @db.VarChar(18)
+    tag_slug        String  @unique @db.VarChar(18)
+    tag_size        Int     @default(0) @db.UnsignedInt()
+    tag_description String  @db.TinyText
+    tag_thumb       String  @db.TinyText
+    tag_type        TagType @default(tag)
+
+    @@index([tag_slug])
+}
+
+enum TagType {
+    tag
+    brand
+}
+
+model tag_by_post {
+    id      Int @id @default(autoincrement()) @db.UnsignedInt()
+    post_id Int @db.UnsignedInt()
+    tag_id  Int @db.UnsignedInt()
+
+    @@index([post_id, tag_id])
+}
+
+model links {
+    link_id          Int   @id @default(autoincrement()) @db.UnsignedSmallInt
+    link_url         String   @db.VarChar(255)
+    link_name        String   @db.VarChar(255)
+    link_thumb       String   @db.TinyText()
+    link_description String   @db.TinyText
+    created_at       DateTime @default(now()) @db.DateTime()
+
+    @@index([link_url])
+}
+
+model phone {
+    phone_id     Int   @id @default(autoincrement()) @db.UnsignedInt
+    phone_number String   @db.VarChar(10)
+    is_purchase  Boolean  @db.TinyInt
+    created_at   DateTime @default(now()) @db.DateTime()
+
+    @@index([phone_number])
+}
+
+model product_variants {
+    variant_id         Int @id @default(autoincrement()) @db.UnsignedInt
+    variant_product_id Int @db.UnsignedInt
+    variant_name       String @db.VarChar(255)
+    variant_price      Int    @db.UnsignedInt
+    variant_sale_price Int    @db.UnsignedInt
+    variant_currency   String @db.VarChar(30)
+    variant_inventory  Int    @db.UnsignedInt
+    variant_thumb      String @db.TinyText
+    variant_widhlist   Int    @db.UnsignedInt
+
+    @@index([variant_product_id])
+}
+
+model reports {
+    report_id       Int      @id @default(autoincrement()) @db.UnsignedInt
+    report_user_id  Int?     @db.UnsignedInt
+    report_phone_id Int?     @db.UnsignedInt
+    report_type     ReportType  @default(spam)
+    report_comment_id  Int      @db.UnsignedInt
+    report_about    ReportAbout @default(comment)
+    report_value    String      @db.Text
+    created_at      DateTime    @default(now()) @db.DateTime()
+}
+
+enum ReportType {
+    spam
+    baoluc
+    khieudam
+    xucpham
+    chinhtri
+}
+
+enum ReportAbout {
+    question
+    comment
+    review
+    reply
+}
+
+model history {
+    history_id BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+    user_id    BigInt   @db.UnsignedBigInt
+    action     String   @db.VarChar(50)
+    data       Bytes    @db.LongBlob
+    created_at DateTime @default(now()) @db.DateTime()
+}
+
+model events {
+    event_id    Int      @id @default(autoincrement()) @db.UnsignedInt
+    even_name   String      @db.Text
+    even_slug   String      @db.VarChar(255)
+    address     String      @db.Text
+    time_start  DateTime    @db.DateTime()
+    time_end    DateTime    @db.DateTime()
+    even_thub   String      @db.VarChar(255)
+    even_status EventStatus @default(upcoming)
+    created_at  DateTime    @default(now()) @db.DateTime()
+
+    @@index([even_slug])
+}
+
+enum EventStatus {
+    upcoming
+    present
+    ended
+}
+
+model cart {
+    cart_id                 Int   @id @default(autoincrement()) @db.UnsignedInt
+    cart_user_id            Int   @db.UnsignedInt
+    cart_product_id         Int   @db.UnsignedInt
+    cart_product_variant_id Int   @db.UnsignedInt
+    cart_product_entity     Int      @db.Int
+    cart_type               CartType @default(cart) // or wishlist
+
+    @@index([cart_user_id, cart_product_id, cart_type])
+}
+
+enum CartType {
+    cart
+    wishlist
+}
+
+model orders {
+    order_id                Int      @id @default(autoincrement()) @db.UnsignedInt
+    order_user_id           Int?     @db.UnsignedInt
+    order_phone_id          Int?     @db.UnsignedInt
+    order_product_id        Int      @db.UnsignedInt
+    order_product_varant_id Int?     @db.UnsignedInt
+    order_product_entity    Int         @db.TinyInt
+    order_address           String      @db.Text
+    order_ship_code         String      @db.VarChar(255)
+    order_note              String      @db.Text
+    order_status            OrderStatus @default(reception)
+    created_at              DateTime    @default(now()) @db.DateTime()
+    sent_at                 DateTime    @db.DateTime()
+    successfull_at          DateTime    @db.DateTime()
+
+    @@index([order_user_id, order_phone_id, order_product_id])
+}
+
+model subscribers {
+    subscriber_id     Int        @id @default(autoincrement()) @db.UnsignedInt
+    value             String        @unique @db.VarChar(255)
+    subscribe_target  String?       @db.TinyText
+    subscribe_at_link String?       @db.TinyText
+    subscribe_type    SubscribeType @default(mail)
+    created_at        DateTime      @default(now()) @db.DateTime()
+    deleted_at        DateTime      @db.DateTime()
+
+    @@index([value, subscribe_type])
+}
+
+enum SubscribeType {
+    mail
+    phone
+}
+
+// enum CategoryType {
+//     category
+//     subcategory
+// }
+
+enum PostMimeType {
+    text
+    pdf
+    jpeg
+    png
+    doc
+    docx
+    xls
+    xlsx
+    gif
+}
+
+enum PostType {
+    article
+    product
+    media
+}
+
+enum Role {
+    user
+    mod
+    admin
+}
+
+enum UserStatus {
+    active
+    registration
+    disable
+}
+
+enum CommentType {
+    review
+    comment
+    reply
+    question
+}
+
+enum UserCommentStatus {
+    enable
+    disable
+}
+
+enum CommentStatus {
+    schedule
+    approved
+    rejected
+}
+
+enum PostCommentStatus {
+    enable
+    disable
+}
+
+enum PostStatus {
+    public
+    hidden
+    schedule
+    draft
+}
+
+enum Action {
+    signin
+    signup
+    resetpassword
+}
+
+enum OrderStatus {
+    reception
+    prepare
+    delivery
+    successfull
+}

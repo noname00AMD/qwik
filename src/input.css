@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    body,
+    input,
+    textarea {
+        @apply dark:bg-slate-900 dark:text-white;
+    }
+    .title1 {
+        @apply text-xl leading-none font-extrabold pt-1;
+    }
+    .title2 {
+        @apply text-lg leading-none font-bold pt-1;
+    }
+    .title3 {
+        @apply text-base leading-none font-semibold pt-1;
+    }
+    .title4 {
+        @apply text-sm  font-semibold pt-1;
+    }
+    .title5 {
+        @apply text-xs font-medium pt-1;
+    }
+    .linkthumb {
+        @apply relative block h-28;
+    }
+    .linkthumb2 {
+        @apply relative block h-36;
+    }
+
+    .text-content {
+        @apply text-xs font-light;
+    }
+    .text_decor {
+        @apply text-red-700 border-b-orange-700 border-b-2 border-solid;
+    }
+    .input,
+    .textarea {
+        @apply rounded-md border-0 py-1.5  px-2 ring-1 ring-inset ring-gray-300  focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6;
+      
+    }
+}
+/* @import "./../output.css"; */
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
